@@ -33,16 +33,22 @@ class YearFlowApp:
         LOGGER.info("YearFlow refresh started")
         snapshot = DateCalculator.build(target_date)
 
-        # Check if the wallpaper image already exists and force is not set
-        output_path = self.config.get_output_path(snapshot.current_date)
-        if output_path.exists() and not force:
+        # Check if a wallpaper for today already exists and force is not set
+        existing_files = list(self.config.wallpaper_output_folder.glob(f"yearflow-wallpaper-{snapshot.current_date.isoformat()}*.png"))
+        
+        if existing_files and not force:
+            output_path = existing_files[0]
             LOGGER.info("Wallpaper for %s already exists. Skipping generation.", snapshot.current_date)
             self.wallpaper_manager.set_wallpaper(output_path)
             LOGGER.info("YearFlow refresh completed (skipped generation)")
             return output_path
 
+        import time
+        timestamp = int(time.time())
+        output_path = self.config.wallpaper_output_folder / f"yearflow-wallpaper-{snapshot.current_date.isoformat()}-{timestamp}.png"
+
         quote = self.quote_manager.get_quote_for_date(snapshot.current_date)
-        wallpaper_path = self.generator.generate(snapshot, quote)
+        wallpaper_path = self.generator.generate(snapshot, quote, output_path=output_path)
         self.wallpaper_manager.set_wallpaper(wallpaper_path)
         LOGGER.info("YearFlow refresh completed")
         return wallpaper_path

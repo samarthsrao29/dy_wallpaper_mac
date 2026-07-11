@@ -15,11 +15,16 @@ class YearFlowConfig:
     """User-configurable settings for wallpaper generation."""
 
     accent_color: str = "#FF3B30"
-    background_color: str = "#000000"
+    background_color: str = "#0B0D13"  # Deep slate dark
+    card_background_color: str = "#131620"  # Slightly lighter card background
+    card_border_color: str = "#202433"  # Card border color
     primary_text_color: str = "#FFFFFF"
-    secondary_text_color: str = "#888888"
-    divider_color: str = "#222222"
+    secondary_text_color: str = "#7E8494"  # Modern secondary grey
+    divider_color: str = "#202433"
     font_path: Path = BASE_DIR / "fonts" / "Inter-Regular.ttf"
+    font_regular_path: Path = BASE_DIR / "fonts" / "Inter-Regular.ttf"
+    font_medium_path: Path = BASE_DIR / "fonts" / "Inter-Medium.ttf"
+    font_bold_path: Path = BASE_DIR / "fonts" / "Inter-Bold.ttf"
     base_font_size: int = 32
     show_quote: bool = True
     show_progress_bar: bool = True
@@ -28,6 +33,8 @@ class YearFlowConfig:
     logs_folder: Path = BASE_DIR / "logs"
     default_resolution: tuple[int, int] = (3840, 2160)
     output_filename: str = "yearflow-wallpaper.png"
+    gradient_start: str = "#FF453A"  # Red/orange gradient start
+    gradient_end: str = "#FF9F0A"  # Red/orange gradient end
 
     def get_output_path(self, target_date: date) -> Path:
         """Return the full path for the generated wallpaper for a specific date."""
