@@ -253,6 +253,38 @@ class WallpaperGenerator:
                 spacing=int(height * 0.006),
             )
 
+        # 8. Reminder Panel
+        if self.config.show_reminder:
+            panel_w = int(width * 0.44)
+            panel_h = int(height * 0.11)
+            if self.config.show_quote:
+                reminder_panel_y = stats_y + int(height * 0.09) + panel_h + int(height * 0.02)
+            else:
+                reminder_panel_y = stats_y + int(height * 0.09)
+            
+            self._draw_card(draw, left_x, reminder_panel_y, panel_w, panel_h, radius=int(height * 0.015))
+            
+            r_badge_sz = int(height * 0.055)
+            r_badge_x = left_x + int(width * 0.015)
+            r_badge_y = reminder_panel_y + (panel_h - r_badge_sz) // 2
+            self._draw_reminder_badge(draw, r_badge_x, r_badge_y, r_badge_sz)
+            
+            reminder_font = self._font(int(height * 0.020), weight="Medium")
+            max_text_w = panel_w - r_badge_sz - int(width * 0.055)
+            wrapped_reminder = self._wrap_text(self.config.reminder_text, reminder_font, max_text_w, draw)
+            
+            reminder_bbox = draw.multiline_textbbox((0, 0), wrapped_reminder, font=reminder_font, spacing=int(height * 0.006))
+            th_reminder = reminder_bbox[3] - reminder_bbox[1]
+            y_offset_reminder = reminder_bbox[1]
+            
+            draw.multiline_text(
+                (r_badge_x + r_badge_sz + int(width * 0.015), reminder_panel_y + (panel_h - th_reminder) // 2 - y_offset_reminder),
+                wrapped_reminder,
+                fill=self.config.primary_text_color,
+                font=reminder_font,
+                spacing=int(height * 0.006),
+            )
+
         # ----------------------------------------------------
         # RIGHT COLUMN
         # ----------------------------------------------------
@@ -451,6 +483,12 @@ class WallpaperGenerator:
         cy = y + (size - th) / 2 - bbox[1] + int(size * 0.15)
         draw.text((cx, cy), text, fill=self.config.accent_color, font=font)
 
+    def _draw_reminder_badge(self, draw: ImageDraw.ImageDraw, x: int, y: int, size: int) -> None:
+        draw.ellipse((x, y, x + size, y + size), fill=self.config.card_background_color, outline=self.config.card_border_color, width=max(1, self.scale))
+        icon_sz = int(size * 0.5)
+        offset = (size - icon_sz) // 2
+        self._draw_icon(draw, "clipboard", x + offset, y + offset, icon_sz, self.config.accent_color)
+
     def _draw_progress_bar(
         self,
         draw: ImageDraw.ImageDraw,
@@ -583,6 +621,40 @@ class WallpaperGenerator:
                 (ax, ay + h * 0.1)
             ]
             draw.polygon(arrow_pts, fill=color)
+
+        elif icon_type == "clipboard":
+            draw.rounded_rectangle(
+                (x + w * 0.22, y + h * 0.25, x + w * 0.78, y + h * 0.92),
+                radius=max(2, int(w * 0.06)),
+                outline=color,
+                width=max(2, self.scale)
+            )
+            draw.rounded_rectangle(
+                (x + w * 0.38, y + h * 0.12, x + w * 0.62, y + h * 0.27),
+                radius=max(1, int(w * 0.04)),
+                outline=color,
+                width=max(2, self.scale),
+                fill=self.config.card_background_color
+            )
+            line_width = max(1, self.scale)
+            cx = x + w * 0.32
+            cy = y + h * 0.44
+            draw.line(
+                [(cx, cy + h * 0.04), (cx + w * 0.04, cy + h * 0.08), (cx + w * 0.10, cy - h * 0.02)],
+                fill=color,
+                width=max(2, self.scale)
+            )
+            draw.line((cx + w * 0.15, cy + h * 0.04, cx + w * 0.38, cy + h * 0.04), fill=color, width=line_width)
+            
+            cx2 = x + w * 0.32
+            cy2 = y + h * 0.60
+            draw.rectangle((cx2, cy2, cx2 + w * 0.08, cy2 + h * 0.08), outline=color, width=line_width)
+            draw.line((cx2 + w * 0.15, cy2 + h * 0.04, cx2 + w * 0.38, cy2 + h * 0.04), fill=color, width=line_width)
+            
+            cx3 = x + w * 0.32
+            cy3 = y + h * 0.76
+            draw.rectangle((cx3, cy3, cx3 + w * 0.08, cy3 + h * 0.08), outline=color, width=line_width)
+            draw.line((cx3 + w * 0.15, cy3 + h * 0.04, cx3 + w * 0.38, cy3 + h * 0.04), fill=color, width=line_width)
 
     def _draw_gradient_text(
         self,

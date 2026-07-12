@@ -28,6 +28,8 @@ class YearFlowConfig:
     base_font_size: int = 32
     show_quote: bool = True
     show_progress_bar: bool = True
+    show_reminder: bool = True
+    reminder_text: str = "Reminder: Check your TO DO list and stay on track!"
     wallpaper_output_folder: Path = BASE_DIR / "generated"
     quotes_path: Path = BASE_DIR / "quotes.json"
     logs_folder: Path = BASE_DIR / "logs"

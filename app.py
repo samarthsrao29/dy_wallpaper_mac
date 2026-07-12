@@ -33,19 +33,40 @@ class YearFlowApp:
         LOGGER.info("YearFlow refresh started")
         snapshot = DateCalculator.build(target_date)
 
-        # Check if a wallpaper for today already exists and force is not set
-        existing_files = list(self.config.wallpaper_output_folder.glob(f"yearflow-wallpaper-{snapshot.current_date.isoformat()}*.png"))
+        # Check if a wallpaper was already generated today
+        path1 = self.config.wallpaper_output_folder / "yearflow-wallpaper-1.png"
+        path2 = self.config.wallpaper_output_folder / "yearflow-wallpaper-2.png"
         
-        if existing_files and not force:
-            output_path = existing_files[0]
-            LOGGER.info("Wallpaper for %s already exists. Skipping generation.", snapshot.current_date)
-            self.wallpaper_manager.set_wallpaper(output_path)
-            LOGGER.info("YearFlow refresh completed (skipped generation)")
-            return output_path
+        already_done_today = False
+        latest_path = None
+        
+        existing_mtimes = []
+        for p in (path1, path2):
+            if p.exists():
+                from datetime import datetime
+                mtime_date = datetime.fromtimestamp(p.stat().st_mtime).date()
+                if mtime_date == snapshot.current_date:
+                    existing_mtimes.append((p.stat().st_mtime, p))
+                    
+        if existing_mtimes:
+            latest_path = max(existing_mtimes, key=lambda x: x[0])[1]
+            already_done_today = True
 
-        import time
-        timestamp = int(time.time())
-        output_path = self.config.wallpaper_output_folder / f"yearflow-wallpaper-{snapshot.current_date.isoformat()}-{timestamp}.png"
+        if already_done_today and latest_path and not force:
+            LOGGER.info("Wallpaper for %s already exists. Skipping generation.", snapshot.current_date)
+            self.wallpaper_manager.set_wallpaper(latest_path)
+            LOGGER.info("YearFlow refresh completed (skipped generation)")
+            return latest_path
+
+        # Determine the next filename to write (alternating to avoid macOS caching)
+        if not path1.exists():
+            output_path = path1
+        elif not path2.exists():
+            output_path = path2
+        else:
+            mtime1 = path1.stat().st_mtime
+            mtime2 = path2.stat().st_mtime
+            output_path = path1 if mtime1 < mtime2 else path2
 
         quote = self.quote_manager.get_quote_for_date(snapshot.current_date)
         wallpaper_path = self.generator.generate(snapshot, quote, output_path=output_path)
