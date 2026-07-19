@@ -1,0 +1,61 @@
+Core Concept
+YearFlow is a minimalist, offline macOS utility that dynamically generates a typography-oriented desktop wallpaper every day. It visualizes the current year progress (days completed, days remaining, and a progress percentage) alongside a daily motivational quote, then automatically sets the generated image as your system wallpaper.
+
+2. Architecture & File Breakdown
+Entrypoint & Coordinator: 
+
+app.py
+Exposes a command-line interface with options to run a wallpaper refresh (--force, --date), and install/uninstall the background daemon (--install-agent, --uninstall-agent).
+Coordinates the instantiation of helpers and executes the 
+
+YearFlowApp
+ class lifecycle.
+Wallpaper Generator: 
+
+wallpaper.py
+Uses Pillow (PIL) to render the minimalist desktop canvas.
+Contains the 
+
+WallpaperGenerator
+ class, which automatically queries macOS display information (system_profiler SPDisplaysDataType) to match your exact desktop resolution, falling back to 4K if not found.
+Renders elements in a card-style grid structure (progress bar, year calendar icon, countdown numbers, completed checkboxes, and a motivational quote card).
+Wallpaper Manager: 
+
+wallpaper_manager.py
+Handles setting the desktop background on macOS using AppleScript through python's subprocess API.
+Includes a check to skip updates if the wallpaper is already set to the generated path.
+Scheduling Service: 
+
+scheduler.py
+Handles installing/uninstalling the background scheduler.
+Builds and loads a macOS LaunchAgent property list (com.yearflow.agent.plist) at ~/Library/LaunchAgents/.
+Configures the utility to automatically execute at login, every day at midnight, and catches up every 10 minutes (StartInterval set to 600 seconds) in case the Mac was asleep during the midnight run.
+Date Calculations: 
+
+date_utils.py
+The 
+
+DateCalculator
+ static helper detects leap years, calculates completed and remaining days of the year, finds remaining days in the active month, and computes the progress percentage.
+Quote Selector: 
+
+quote_manager.py
+Loads quotes from 
+
+quotes.json
+.
+Selects a daily quote deterministically using modulo arithmetic based on the current date integer seed (YYYYMMDD).
+Settings & Configurations: 
+
+config.py
+Defines core custom variables (accent colors, fonts, sizes, layout flags).
+Differentiates paths dynamically depending on whether the program is running in development mode or as a compiled, frozen application package (storing outputs in ~/Pictures/YearFlow vs ./generated/).
+3. Lifecycle of a Wallpaper Refresh
+When YearFlow runs (either triggered by the user or launchd):
+
+Date Snapshot Check: It computes current calendar stats.
+Duplicate Detection: It checks the modification dates of existing wallpaper files. If a wallpaper was already generated today and --force isn't passed, it skips rendering and ensures that existing wallpaper is active.
+Filename Alternating: To prevent macOS from caching and refusing to display a renewed desktop picture under the same filename, the app alternates saving between two filenames: yearflow-wallpaper-1.png and yearflow-wallpaper-2.png.
+Drawing & Rendering: The app extracts the deterministic daily quote, computes the year percentages, loads fonts from the fonts folder, and renders the output PNG image at double scale for retina displays.
+macOS Settings System Update: It invokes a macOS AppleScript script via Python's subprocess to change the desktop background on all spaces and virtual desktops to the newly generated file path.
+Cleanup & Exit: Old date-based files are cleaned up, and the script terminates immediately, using 0% CPU and 0 MB RAM when idle.
