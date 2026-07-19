@@ -199,6 +199,19 @@ If you ever want to completely remove YearFlow, follow these steps:
 How to View Logs via Finder (GUI)
 Since the Library folder is hidden by default in macOS Finder, you can access it like this:
 
+
+**QUICK tips : 
+**
+Terminal Command
+If the GUI method is blocked or doesn't work, you can remove the "quarantine" flag that macOS assigned to the app when it was extracted:
+
+Open the Terminal app on the other laptop.
+Copy and paste the following command, then press Enter:
+bash
+xattr -cr /Applications/YearFlow.app
+Double-click the app. It will now open immediately without warning.
+
+
 Open Finder.
 Click Go in the top menu bar.
 Hold down the Option (⌥) key on your keyboard. The Library folder will appear in the dropdown list. Click on it.
