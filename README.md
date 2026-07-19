@@ -18,8 +18,9 @@ Add screenshots here after generating your first wallpaper.
 ## Installation
 
 ```bash
-cd /Users/samarthrao/LocalFiles/wallpaper/YearFlow
-python3.13 -m venv .venv
+git clone https://github.com/samarthsrao29/dy_wallpaper_mac.git
+cd dy_wallpaper_mac/YearFlow
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```

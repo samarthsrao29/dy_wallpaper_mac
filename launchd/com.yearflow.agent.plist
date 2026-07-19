@@ -10,11 +10,11 @@
     <array>
         <string>/usr/bin/env</string>
         <string>python3</string>
-        <string>/Users/samarthrao/LocalFiles/wallpaper/YearFlow/app.py</string>
+        <string>/path/to/YearFlow/app.py</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/samarthrao/LocalFiles/wallpaper/YearFlow</string>
+    <string>/path/to/YearFlow</string>
 
     <key>RunAtLoad</key>
     <true/>
@@ -31,9 +31,9 @@
     <integer>600</integer>
 
     <key>StandardOutPath</key>
-    <string>/Users/samarthrao/LocalFiles/wallpaper/YearFlow/logs/yearflow-launchd.out.log</string>
+    <string>/path/to/YearFlow/logs/yearflow-launchd.out.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/Users/samarthrao/LocalFiles/wallpaper/YearFlow/logs/yearflow-launchd.err.log</string>
+    <string>/path/to/YearFlow/logs/yearflow-launchd.err.log</string>
 </dict>
 </plist>
