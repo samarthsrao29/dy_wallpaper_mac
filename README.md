@@ -77,26 +77,41 @@ You can also inspect the job manually:
 launchctl list | grep yearflow
 ```
 
-## Packaging
+## Packaging & Distribution (DMG)
 
-Create a standalone macOS app with PyInstaller:
+You can package YearFlow as a standalone macOS application inside a `.dmg` installer using the provided automated script.
 
+### 1. Build the DMG
+Run the packaging script in your terminal:
 ```bash
-pyinstaller \
-  --windowed \
-  --name YearFlow \
-  --add-data "quotes.json:." \
-  --add-data "fonts:fonts" \
-  app.py
+./build_dmg.sh
 ```
-
-The packaged app will be created under:
-
+This script compiles the application and produces the installer image at:
 ```text
-dist/YearFlow.app
+dist/YearFlow.dmg
 ```
 
-Double-clicking the app regenerates and sets the current wallpaper. For LaunchAgent use with a packaged app, update `ProgramArguments` in the plist to point to the executable inside `dist/YearFlow.app/Contents/MacOS/YearFlow`.
+### 2. Install on any Mac
+1. Double-click the generated `YearFlow.dmg` to mount it.
+2. Drag `YearFlow.app` into the **Applications** folder shortcut.
+3. Open `YearFlow.app` from your Applications folder.
+
+### 3. Gatekeeper Bypass (For free distribution)
+Since the app is built for free (without a $99/year Apple Developer Account), macOS Gatekeeper will block it on other Macs, saying the developer is unidentified.
+* **To bypass this:** Right-click (or Control-click) `YearFlow.app` in `/Applications`, click **Open**, and then click **Open** in the warning dialog. (This is only required on the very first launch).
+* **Alternative (Terminal command):** Run the following command:
+  ```bash
+  xattr -cr /Applications/YearFlow.app
+  ```
+
+### 4. Zero Configuration (Auto-Scheduling)
+Once launched from `/Applications`, the app will automatically:
+1. Generate and set your first wallpaper.
+2. Write outputs to user-writable folders:
+   * Generated wallpapers: `~/Pictures/YearFlow`
+   * Logs & Config: `~/Library/Application Support/YearFlow`
+3. Configure the `launchd` LaunchAgent to automatically refresh your wallpaper daily at 12:00 AM (and every 10 minutes to catch up if the Mac was asleep). No terminal configuration is required by the end-user.
+
 
 ## Folder Structure
 
@@ -145,6 +160,30 @@ launchctl load ~/Library/LaunchAgents/com.yearflow.agent.plist
 ```
 
 If the Inter font is unavailable, YearFlow falls back to a system font. Place `Inter-Regular.ttf` in `fonts/` for the intended typography.
+
+## Safety & Performance
+
+YearFlow is designed to be extremely lightweight and unobtrusive:
+* **No Battery/CPU Drain:** The app does not run constantly in the background. macOS's built-in `launchd` service triggers it once at midnight and briefly every 10 minutes to verify. The execution takes less than a second to run and completely exits. It uses 0% CPU and 0 MB RAM when idle.
+* **Storage Footprint:** Generated wallpapers alternate between only two files: `yearflow-wallpaper-1.png` and `yearflow-wallpaper-2.png` (~200 KB each), ensuring it never hoards disk space.
+* **No Administrator Privileges:** The app runs entirely in user-space, requiring no root permissions. It only asks for standard Automation permissions to tell macOS "System Events" to set the wallpaper.
+
+## How to Uninstall
+
+If you ever want to completely remove YearFlow, follow these steps:
+
+1. **Unload & delete the background scheduler:**
+   ```bash
+   launchctl unload ~/Library/LaunchAgents/com.yearflow.agent.plist
+   rm ~/Library/LaunchAgents/com.yearflow.agent.plist
+   ```
+2. **Remove the application:**
+   Delete `YearFlow.app` from your `/Applications` folder (or move it to Trash).
+3. **Clean up generated data and logs:**
+   ```bash
+   rm -rf ~/Pictures/YearFlow
+   rm -rf "~/Library/Application Support/YearFlow"
+   ```
 
 ## Future Improvements
 

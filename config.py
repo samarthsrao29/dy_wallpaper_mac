@@ -7,7 +7,25 @@ from datetime import date
 from pathlib import Path
 
 
+import sys
+
 BASE_DIR = Path(__file__).resolve().parent
+
+IS_FROZEN = getattr(sys, "frozen", False)
+
+if IS_FROZEN:
+    # Use user-specific writable directories for output files when packaged
+    APP_DATA_DIR = Path.home() / "Library" / "Application Support" / "YearFlow"
+    APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    WALLPAPER_OUTPUT_FOLDER = Path.home() / "Pictures" / "YearFlow"
+    WALLPAPER_OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
+
+    LOGS_FOLDER = APP_DATA_DIR / "logs"
+    LOGS_FOLDER.mkdir(parents=True, exist_ok=True)
+else:
+    WALLPAPER_OUTPUT_FOLDER = BASE_DIR / "generated"
+    LOGS_FOLDER = BASE_DIR / "logs"
 
 
 @dataclass(frozen=True)
@@ -30,9 +48,9 @@ class YearFlowConfig:
     show_progress_bar: bool = True
     show_reminder: bool = True
     reminder_text: str = "Reminder: Check your TO DO list and stay on track!"
-    wallpaper_output_folder: Path = BASE_DIR / "generated"
+    wallpaper_output_folder: Path = WALLPAPER_OUTPUT_FOLDER
     quotes_path: Path = BASE_DIR / "quotes.json"
-    logs_folder: Path = BASE_DIR / "logs"
+    logs_folder: Path = LOGS_FOLDER
     default_resolution: tuple[int, int] = (3840, 2160)
     output_filename: str = "yearflow-wallpaper.png"
     gradient_start: str = "#FF453A"  # Red/orange gradient start

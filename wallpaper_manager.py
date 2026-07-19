@@ -19,6 +19,21 @@ class WallpaperManager:
         if not resolved_path.exists():
             raise FileNotFoundError(f"Wallpaper image does not exist: {resolved_path}")
 
+        # Check if the wallpaper is already set to the target path to avoid redundant updates
+        try:
+            check_result = subprocess.run(
+                ["osascript", "-e", 'tell application "System Events" to get picture of every desktop'],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            current_paths = [p.strip() for p in check_result.stdout.strip().split(",") if p.strip()]
+            if current_paths and all(p == str(resolved_path) for p in current_paths):
+                LOGGER.info("Wallpaper is already set correctly to: %s. Skipping update.", resolved_path)
+                return
+        except Exception as error:
+            LOGGER.warning("Could not check current wallpaper: %s. Proceeding to set it.", error)
+
         script = (
             'tell application "System Events"\n'
             "  repeat with currentDesktop in desktops\n"

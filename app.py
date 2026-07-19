@@ -121,10 +121,15 @@ def main() -> int:
     configure_logging()
     args = build_parser().parse_args()
 
-    project_dir = Path(__file__).resolve().parent
+    is_frozen = getattr(sys, "frozen", False)
+    if is_frozen:
+        resource_dir = Path(sys._MEIPASS)
+    else:
+        resource_dir = Path(__file__).resolve().parent
+
     scheduler = LaunchAgentScheduler(
-        project_dir=project_dir,
-        plist_path=project_dir / "launchd" / "com.yearflow.agent.plist",
+        project_dir=resource_dir,
+        plist_path=resource_dir / "launchd" / "com.yearflow.agent.plist",
     )
 
     try:
@@ -143,6 +148,14 @@ def main() -> int:
             except ValueError:
                 LOGGER.error("Invalid date format: %s. Use YYYY-MM-DD.", args.date)
                 return 1
+
+        # Auto-install/update LaunchAgent when running as a packaged app
+        if getattr(sys, "frozen", False):
+            try:
+                LOGGER.info("YearFlow packaged app detected. Setting up LaunchAgent automatically...")
+                scheduler.install()
+            except Exception as error:
+                LOGGER.warning("Could not automatically configure LaunchAgent: %s", error)
 
         app = YearFlowApp()
         app.refresh(target_date=target_date, force=args.force)

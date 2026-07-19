@@ -13,3 +13,15 @@ generated/
 
 # OS metadata
 .DS_Store
+
+# Virtual environments
+.venv/
+venv/
+
+# PyInstaller build artifacts
+build/
+YearFlow.spec
+
+# PyInstaller dist folder - ignore everything except the DMG installer
+dist/*
+!dist/YearFlow.dmg

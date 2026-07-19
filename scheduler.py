@@ -39,21 +39,41 @@ class LaunchAgentScheduler:
             }
 
         # Update paths dynamically using current workspace and environment
-        plist_data["ProgramArguments"] = [
-            sys.executable,
-            str(self.project_dir / "app.py"),
-        ]
-        plist_data["WorkingDirectory"] = str(self.project_dir)
+        is_frozen = getattr(sys, "frozen", False)
+        if is_frozen:
+            # When frozen, sys.executable points to the packaged YearFlow binary
+            plist_data["ProgramArguments"] = [sys.executable]
+            app_data_dir = Path.home() / "Library" / "Application Support" / "YearFlow"
+            plist_data["WorkingDirectory"] = str(app_data_dir)
+            logs_dir = app_data_dir / "logs"
+        else:
+            plist_data["ProgramArguments"] = [
+                sys.executable,
+                str(self.project_dir / "app.py"),
+            ]
+            plist_data["WorkingDirectory"] = str(self.project_dir)
+            logs_dir = self.project_dir / "logs"
 
         # Create logs directory if it does not exist
-        logs_dir = self.project_dir / "logs"
         logs_dir.mkdir(parents=True, exist_ok=True)
 
         plist_data["StandardOutPath"] = str(logs_dir / "yearflow-launchd.out.log")
         plist_data["StandardErrorPath"] = str(logs_dir / "yearflow-launchd.err.log")
 
-        # Set StartInterval to run hourly to catch up in case computer was asleep
-        plist_data["StartInterval"] = 3600
+        # Set StartInterval to run every 10 minutes to catch up in case computer was asleep
+        plist_data["StartInterval"] = 600
+
+        # Avoid reload loop: check if plist already exists and has identical key fields
+        if self.installed_plist.exists():
+            try:
+                with open(self.installed_plist, "rb") as file:
+                    current_plist = plistlib.load(file)
+                if (current_plist.get("ProgramArguments") == plist_data["ProgramArguments"] and
+                        current_plist.get("WorkingDirectory") == plist_data["WorkingDirectory"]):
+                    LOGGER.info("LaunchAgent is already installed and up to date at: %s", self.installed_plist)
+                    return
+            except Exception as error:
+                LOGGER.warning("Could not verify existing plist: %s. Re-installing.", error)
 
         with open(self.installed_plist, "wb") as file:
             plistlib.dump(plist_data, file)
