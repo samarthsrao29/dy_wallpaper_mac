@@ -193,3 +193,16 @@ If you ever want to completely remove YearFlow, follow these steps:
 - Per-space wallpaper preferences
 - User-editable JSON configuration
 - Signed and notarized app distribution
+
+
+
+How to View Logs via Finder (GUI)
+Since the Library folder is hidden by default in macOS Finder, you can access it like this:
+
+Open Finder.
+Click Go in the top menu bar.
+Hold down the Option (⌥) key on your keyboard. The Library folder will appear in the dropdown list. Click on it.
+Navigate to: Application Support ➔ YearFlow ➔ logs.
+Double-click any .log file to open and view it in Console or TextEdit.
+
+
