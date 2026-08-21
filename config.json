@@ -1,0 +1,22 @@
+{
+    "accent_color": "#00FF00",
+    "background_color": "#0B0D13",
+    "card_background_color": "#131620",
+    "card_border_color": "#202433",
+    "primary_text_color": "#FFFFFF",
+    "secondary_text_color": "#7E8494",
+    "divider_color": "#202433",
+    "base_font_size": 32,
+    "show_quote": true,
+    "show_progress_bar": true,
+    "show_reminder": false,
+    "reminder_text": "Reminder: Check your TO DO list and stay on track!",
+    "gradient_start": "#FF453A",
+    "gradient_end": "#FF9F0A",
+    "default_resolution": [
+        3840,
+        2160
+    ],
+    "backgrounds_folder": "",
+    "background_image_opacity": 0.15
+}

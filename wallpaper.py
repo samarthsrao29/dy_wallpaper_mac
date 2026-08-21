@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from config import YearFlowConfig
 from date_utils import DateSnapshot
@@ -38,7 +38,11 @@ class WallpaperGenerator:
         canvas_width = width * self.scale
         canvas_height = height * self.scale
 
-        image = Image.new("RGB", (canvas_width, canvas_height), self.config.background_color)
+        # Attempt to load a daily background image
+        image = self._get_background_image(snapshot.current_date, canvas_width, canvas_height)
+        if image is None:
+            image = Image.new("RGB", (canvas_width, canvas_height), self.config.background_color)
+        
         draw = ImageDraw.Draw(image)
         self.image = image
 
@@ -53,6 +57,50 @@ class WallpaperGenerator:
         self._cleanup_old_wallpapers(output_path)
         
         return output_path
+
+    def _get_background_image(self, date_val: date, width: int, height: int) -> Image.Image | None:
+        """Load, crop, and blend a background image if any are found in the backgrounds folder."""
+        bg_folder = self.config.backgrounds_folder
+        if not bg_folder or not bg_folder.exists() or not bg_folder.is_dir():
+            return None
+
+        # Scan for images
+        valid_extensions = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
+        try:
+            image_files = sorted(
+                [p for p in bg_folder.iterdir() if p.suffix.lower() in valid_extensions and p.is_file()]
+            )
+        except Exception as error:
+            LOGGER.warning("Could not read backgrounds directory: %s", error)
+            return None
+
+        if not image_files:
+            return None
+
+        # Select image deterministically by date
+        day_index = date_val.toordinal()
+        selected_file = image_files[day_index % len(image_files)]
+        LOGGER.info("Selected background image: %s", selected_file)
+
+        try:
+            with Image.open(selected_file) as img:
+                # Pillow's fit method does cover resize: scales/crops to exact dimensions
+                cover_img = ImageOps.fit(img, (width, height), centering=(0.5, 0.5))
+                # Convert to RGB just in case the source image is RGBA/L/etc.
+                cover_img = cover_img.convert("RGB")
+
+                # Blend with solid background color to ensure text legibility
+                solid_bg = Image.new("RGB", (width, height), self.config.background_color)
+                # Keep opacity within bounds [0, 1]
+                opacity = max(0.0, min(1.0, self.config.background_image_opacity))
+                
+                # Image.blend blends solid_bg (first arg) with cover_img (second arg)
+                # opacity = 0.0 means 100% solid_bg, 1.0 means 100% cover_img
+                blended = Image.blend(solid_bg, cover_img, opacity)
+                return blended
+        except Exception as error:
+            LOGGER.error("Failed to process background image %s: %s", selected_file, error)
+            return None
 
     def detect_resolution(self) -> tuple[int, int]:
         """Detect the main display resolution, falling back to 4K."""

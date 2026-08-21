@@ -34,7 +34,8 @@ class WallpaperManager:
         except Exception as error:
             LOGGER.warning("Could not check current wallpaper: %s. Proceeding to set it.", error)
 
-        script = (
+        # Try setting via System Events first (supports multiple displays)
+        system_events_script = (
             'tell application "System Events"\n'
             "  repeat with currentDesktop in desktops\n"
             f'    set picture of currentDesktop to "{resolved_path}"\n'
@@ -42,14 +43,55 @@ class WallpaperManager:
             "end tell"
         )
 
+        success = False
         try:
             subprocess.run(
-                ["osascript", "-e", script],
+                ["osascript", "-e", system_events_script],
                 check=True,
                 capture_output=True,
                 text=True,
             )
-            LOGGER.info("Wallpaper changed: %s", resolved_path)
+            LOGGER.info("Wallpaper set command sent via System Events: %s", resolved_path)
+            success = True
         except subprocess.CalledProcessError as error:
-            LOGGER.error("Failed to set wallpaper: %s", error.stderr.strip())
-            raise
+            LOGGER.warning("System Events failed to set wallpaper: %s. Trying Finder fallback...", error.stderr.strip())
+
+        # If System Events fails or silently ignores it, fallback to Finder
+        if not success:
+            finder_script = f'tell application "Finder" to set desktop picture to POSIX file "{resolved_path}"'
+            try:
+                subprocess.run(
+                    ["osascript", "-e", finder_script],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                LOGGER.info("Wallpaper changed via Finder: %s", resolved_path)
+                success = True
+            except subprocess.CalledProcessError as finder_error:
+                LOGGER.error("Failed to set wallpaper via Finder: %s", finder_error.stderr.strip())
+                raise
+
+        # Verify the change actually took effect in macOS settings
+        try:
+            verify_result = subprocess.run(
+                ["osascript", "-e", 'tell application "System Events" to get picture of every desktop'],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            new_paths = [p.strip() for p in verify_result.stdout.strip().split(",") if p.strip()]
+            if new_paths and not any(p == str(resolved_path) for p in new_paths):
+                LOGGER.warning(
+                    "macOS did not update the wallpaper path to %s. "
+                    "Current paths are: %s. "
+                    "This is likely due to missing Automation/TCC permissions. "
+                    "Please check 'System Settings -> Privacy & Security -> Automation' and ensure Terminal and YearFlow are allowed to control Finder and System Events.",
+                    resolved_path, new_paths
+                )
+                # Try Finder fallback as a last resort in case System Events ran but failed silently
+                finder_script = f'tell application "Finder" to set desktop picture to POSIX file "{resolved_path}"'
+                subprocess.run(["osascript", "-e", finder_script], check=True, capture_output=True)
+                LOGGER.info("Attempted last-resort Finder force update: %s", resolved_path)
+        except Exception as error:
+            LOGGER.warning("Could not verify wallpaper change: %s", error)

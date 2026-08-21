@@ -119,6 +119,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     """Run YearFlow from the command line."""
     configure_logging()
+
+    from config import CONFIG_LOAD_WARNINGS
+    for warning in CONFIG_LOAD_WARNINGS:
+        LOGGER.warning(warning)
+
     args = build_parser().parse_args()
 
     is_frozen = getattr(sys, "frozen", False)
