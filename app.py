@@ -113,6 +113,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Force wallpaper regeneration even if it already exists.",
     )
+    parser.add_argument(
+        "--background",
+        action="store_true",
+        help="Run silently in the background (used by scheduler).",
+    )
+    parser.add_argument(
+        "--gui",
+        action="store_true",
+        help="Explicitly launch the settings GUI dashboard.",
+    )
     return parser
 
 
@@ -163,7 +173,21 @@ def main() -> int:
                 LOGGER.warning("Could not automatically configure LaunchAgent: %s", error)
 
         app = YearFlowApp()
+        
+        # If running in background, just refresh silently and exit
+        if args.background:
+            app.refresh(target_date=target_date, force=args.force)
+            return 0
+
+        # Otherwise, refresh once and launch settings GUI
+        LOGGER.info("Starting YearFlow in interactive GUI mode...")
         app.refresh(target_date=target_date, force=args.force)
+        
+        from gui import SettingsGUIServer
+        gui_server = SettingsGUIServer()
+        gui_server.start()
+        gui_server.wait()
+        
         return 0
     except Exception:
         LOGGER.exception("YearFlow failed")

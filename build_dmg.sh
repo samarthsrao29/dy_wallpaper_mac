@@ -30,6 +30,7 @@ pyinstaller --windowed --name YearFlow --noconfirm \
     --add-data "quotes.json:." \
     --add-data "fonts:fonts" \
     --add-data "launchd:launchd" \
+    --add-data "settings.html:." \
     app.py
 
 # Verify the app was built

@@ -42,7 +42,7 @@ class LaunchAgentScheduler:
         is_frozen = getattr(sys, "frozen", False)
         if is_frozen:
             # When frozen, sys.executable points to the packaged YearFlow binary
-            plist_data["ProgramArguments"] = [sys.executable]
+            plist_data["ProgramArguments"] = [sys.executable, "--background"]
             app_data_dir = Path.home() / "Library" / "Application Support" / "YearFlow"
             plist_data["WorkingDirectory"] = str(app_data_dir)
             logs_dir = app_data_dir / "logs"
@@ -50,6 +50,7 @@ class LaunchAgentScheduler:
             plist_data["ProgramArguments"] = [
                 sys.executable,
                 str(self.project_dir / "app.py"),
+                "--background",
             ]
             plist_data["WorkingDirectory"] = str(self.project_dir)
             logs_dir = self.project_dir / "logs"

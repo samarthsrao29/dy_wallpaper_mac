@@ -43,6 +43,7 @@ class YearFlowConfig:
     primary_text_color: str = "#FFFFFF"
     secondary_text_color: str = "#7E8494"  # Modern secondary grey
     divider_color: str = "#202433"
+    font_family: str = "Inter"
     font_path: Path = BASE_DIR / "fonts" / "Inter-Regular.ttf"
     font_regular_path: Path = BASE_DIR / "fonts" / "Inter-Regular.ttf"
     font_medium_path: Path = BASE_DIR / "fonts" / "Inter-Medium.ttf"
@@ -77,6 +78,35 @@ import json
 
 CONFIG_LOAD_WARNINGS: list[str] = []
 
+import functools
+from PIL import ImageFont
+
+@functools.lru_cache(maxsize=1)
+def scan_mac_fonts() -> dict[str, dict[str, str]]:
+    """Scan macOS font directories and map font family names to style paths."""
+    font_dirs = [
+        Path("/System/Library/Fonts"),
+        Path("/Library/Fonts"),
+        Path.home() / "Library/Fonts",
+        BASE_DIR / "fonts"
+    ]
+    families = {}
+    for folder in font_dirs:
+        if not folder.exists() or not folder.is_dir():
+            continue
+        # Scan files
+        for file_path in folder.rglob("*"):
+            if file_path.suffix.lower() in (".ttf", ".otf", ".ttc") and file_path.is_file():
+                try:
+                    font = ImageFont.truetype(str(file_path), 12)
+                    family, style = font.getname()
+                    if family not in families:
+                        families[family] = {}
+                    families[family][style] = str(file_path.resolve())
+                except Exception:
+                    pass
+    return families
+
 
 def load_config() -> YearFlowConfig:
     """Load configuration from JSON file or fall back to defaults."""
@@ -99,6 +129,7 @@ def load_config() -> YearFlowConfig:
         "default_resolution": [3840, 2160],
         "backgrounds_folder": "",
         "background_image_opacity": 0.15,
+        "font_family": "Inter",
     }
 
     if IS_FROZEN:
@@ -163,6 +194,48 @@ def load_config() -> YearFlowConfig:
     except Exception as e:
         CONFIG_LOAD_WARNINGS.append(f"Failed to create backgrounds directory at {bg_folder}: {e}")
 
+    font_family = str(loaded_settings.get("font_family", defaults["font_family"]))
+
+    # Resolve regular, medium, bold paths dynamically
+    font_regular_path = BASE_DIR / "fonts" / "Inter-Regular.ttf"
+    font_medium_path = BASE_DIR / "fonts" / "Inter-Medium.ttf"
+    font_bold_path = BASE_DIR / "fonts" / "Inter-Bold.ttf"
+
+    if font_family != "Inter":
+        try:
+            families = scan_mac_fonts()
+            if font_family in families:
+                styles = families[font_family]
+                
+                # Find regular
+                reg_found = None
+                for k, v in styles.items():
+                    if any(x in k.lower() for x in ("regular", "roman", "light", "w3", "w4", "plain")):
+                        reg_found = Path(v)
+                        break
+                if not reg_found and styles:
+                    reg_found = Path(list(styles.values())[0])
+                if reg_found:
+                    font_regular_path = reg_found
+                    
+                # Find bold
+                bold_found = None
+                for k, v in styles.items():
+                    if any(x in k.lower() for x in ("bold", "w7", "w8")):
+                        bold_found = Path(v)
+                        break
+                font_bold_path = bold_found if bold_found else font_regular_path
+                
+                # Find medium
+                med_found = None
+                for k, v in styles.items():
+                    if any(x in k.lower() for x in ("medium", "semibold", "w5", "w6", "500", "600")):
+                        med_found = Path(v)
+                        break
+                font_medium_path = med_found if med_found else font_regular_path
+        except Exception as e:
+            CONFIG_LOAD_WARNINGS.append(f"Failed to scan/match fonts for '{font_family}': {e}")
+
     # Construct the config object
     return YearFlowConfig(
         accent_color=str(loaded_settings.get("accent_color", defaults["accent_color"])),
@@ -182,10 +255,11 @@ def load_config() -> YearFlowConfig:
         default_resolution=resolution,
         
         # Paths
-        font_path=to_path(loaded_settings.get("font_path"), BASE_DIR / "fonts" / "Inter-Regular.ttf"),
-        font_regular_path=to_path(loaded_settings.get("font_regular_path"), BASE_DIR / "fonts" / "Inter-Regular.ttf"),
-        font_medium_path=to_path(loaded_settings.get("font_medium_path"), BASE_DIR / "fonts" / "Inter-Medium.ttf"),
-        font_bold_path=to_path(loaded_settings.get("font_bold_path"), BASE_DIR / "fonts" / "Inter-Bold.ttf"),
+        font_family=font_family,
+        font_path=font_regular_path,
+        font_regular_path=font_regular_path,
+        font_medium_path=font_medium_path,
+        font_bold_path=font_bold_path,
         wallpaper_output_folder=to_path(loaded_settings.get("wallpaper_output_folder"), WALLPAPER_OUTPUT_FOLDER),
         backgrounds_folder=bg_folder,
         background_image_opacity=opacity,

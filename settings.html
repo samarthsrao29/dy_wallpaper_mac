@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YearFlow • Settings Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0d13;
+            --card-bg: rgba(19, 22, 32, 0.7);
+            --card-border: rgba(32, 36, 51, 0.8);
+            --accent: #ff3b30;
+            --text-primary: #ffffff;
+            --text-secondary: #7e8494;
+            --font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 10% 20%, rgba(255, 59, 48, 0.08) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(255, 159, 10, 0.05) 0%, transparent 40%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 1.5rem;
+        }
+
+        .logo-section h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-section p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .badge {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--accent);
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 59, 48, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background: var(--card-border);
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Custom Inputs */
+        input[type="text"], select {
+            width: 100%;
+            background: rgba(11, 13, 19, 0.6);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15);
+        }
+
+        /* Color Picker Row */
+        .color-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 1rem;
+        }
+
+        .color-item {
+            background: rgba(11, 13, 19, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .color-item:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(11, 13, 19, 0.6);
+        }
+
+        .color-item input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            background: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .color-item input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-item input[type="color"]::-webkit-color-swatch {
+            border: 2px solid var(--card-border);
+            border-radius: 50%;
+        }
+
+        .color-item input[type="color"]:hover {
+            transform: scale(1.08);
+        }
+
+        .color-item span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Sliders */
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: var(--card-border);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: transform 0.1s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .range-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 40px;
+        }
+
+        /* Checkbox Options */
+        .checkbox-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            background: rgba(11, 13, 19, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item input[type="checkbox"]:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .checkbox-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .checkbox-item span {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        /* Footer buttons */
+        .footer-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2.5rem;
+            border-top: 1px solid var(--card-border);
+            padding-top: 1.5rem;
+        }
+
+        button {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-family: var(--font-family);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        button.btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--card-border);
+        }
+
+        button.btn-secondary:hover {
+            color: var(--text-primary);
+            border-color: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.02);
+        }
+
+        button.btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3);
+        }
+
+        button.btn-primary:hover {
+            background: #ff453a;
+            box-shadow: 0 6px 20px rgba(255, 59, 48, 0.4);
+            transform: translateY(-1px);
+        }
+
+        button.btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Notification Banner */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(19, 22, 32, 0.9);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .toast.success .toast-icon {
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+
+        .toast.error .toast-icon {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+
+        .toast-msg {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <h1>YearFlow</h1>
+                <p>Customize your Daily Motivational Canvas</p>
+            </div>
+            <span class="badge" id="resolution-badge">Detecting...</span>
+        </header>
+
+        <!-- Section 1: Typography & Opacity -->
+        <h2 class="section-title">Aesthetics & Layout</h2>
+        <div class="grid-layout" style="margin-bottom: 2rem;">
+            <div>
+                <div class="form-group">
+                    <label for="font-select">Font Family</label>
+                    <select id="font-select">
+                        <option value="Inter">Inter (Default)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="opacity-range">Background Picture Brightness (Opacity)</label>
+                    <div class="range-container">
+                        <input type="range" id="opacity-range" min="0" max="100" value="15">
+                        <span class="range-value" id="opacity-val">15%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="form-group">
+                    <label>Toggle Widgets</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="chk-quote" checked>
+                            <span>Display Daily Quote Card</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="chk-progress" checked>
+                            <span>Display Yearly Progress Bar</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="chk-reminder" checked>
+                            <span>Display Custom Reminder Card</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 2.5rem;">
+            <label for="reminder-text">Custom Reminder Text</label>
+            <input type="text" id="reminder-text" placeholder="e.g. Check your TO DO list and stay on track!">
+        </div>
+
+        <!-- Section 2: Color Palette -->
+        <h2 class="section-title">Color Customizations</h2>
+        <div class="color-picker-grid">
+            <div class="color-item">
+                <input type="color" id="col-accent">
+                <span>Accent color</span>
+            </div>
+            <div class="color-item">
+                <input type="color" id="col-bg">
+                <span>Background</span>
+            </div>
+            <div class="color-item">
+                <input type="color" id="col-card-bg">
+                <span>Card base</span>
+            </div>
+            <div class="color-item">
+                <input type="color" id="col-card-border">
+                <span>Card border</span>
+            </div>
+            <div class="color-item">
+                <input type="color" id="col-text-primary">
+                <span>Primary text</span>
+            </div>
+            <div class="color-item">
+                <input type="color" id="col-text-secondary">
+                <span>Secondary text</span>
+            </div>
+            <div class="color-item">
+                <input type="color" id="col-divider">
+                <span>Dividers</span>
+            </div>
+            <div class="color-item">
+                <input type="color" id="col-grad-start">
+                <span>Gradient start</span>
+            </div>
+            <div class="color-item">
+                <input type="color" id="col-grad-end">
+                <span>Gradient end</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="footer-actions">
+            <button class="btn-secondary" onclick="closeDashboard()">Close Settings</button>
+            <button class="btn-primary" onclick="saveSettings()">Save & Apply</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast success" id="toast-banner">
+        <div class="toast-icon">✓</div>
+        <div class="toast-msg" id="toast-msg">Settings saved & wallpaper updated!</div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const fontSelect = document.getElementById('font-select');
+        const opacityRange = document.getElementById('opacity-range');
+        const opacityVal = document.getElementById('opacity-val');
+        const chkQuote = document.getElementById('chk-quote');
+        const chkProgress = document.getElementById('chk-progress');
+        const chkReminder = document.getElementById('chk-reminder');
+        const reminderText = document.getElementById('reminder-text');
+        const resBadge = document.getElementById('resolution-badge');
+
+        const colAccent = document.getElementById('col-accent');
+        const colBg = document.getElementById('col-bg');
+        const colCardBg = document.getElementById('col-card-bg');
+        const colCardBorder = document.getElementById('col-card-border');
+        const colTextPrimary = document.getElementById('col-text-primary');
+        const colTextSecondary = document.getElementById('col-text-secondary');
+        const colDivider = document.getElementById('col-divider');
+        const colGradStart = document.getElementById('col-grad-start');
+        const colGradEnd = document.getElementById('col-grad-end');
+
+        const toastBanner = document.getElementById('toast-banner');
+        const toastMsg = document.getElementById('toast-msg');
+
+        let currentConfig = {};
+
+        // Slider listener
+        opacityRange.addEventListener('input', (e) => {
+            opacityVal.textContent = e.target.value + '%';
+        });
+
+        // Show Toast Notification
+        function showToast(message, isSuccess = true) {
+            toastMsg.textContent = message;
+            toastBanner.className = 'toast ' + (isSuccess ? 'success' : 'error');
+            toastBanner.querySelector('.toast-icon').textContent = isSuccess ? '✓' : '✗';
+            toastBanner.classList.add('show');
+            setTimeout(() => {
+                toastBanner.classList.remove('show');
+            }, 3000);
+        }
+
+        // Fetch fonts and configurations on startup
+        async function loadInitData() {
+            try {
+                // Fetch config
+                const resConfig = await fetch('/api/config');
+                currentConfig = await resConfig.json();
+
+                // Populate colors
+                colAccent.value = currentConfig.accent_color;
+                colBg.value = currentConfig.background_color;
+                colCardBg.value = currentConfig.card_background_color;
+                colCardBorder.value = currentConfig.card_border_color;
+                colTextPrimary.value = currentConfig.primary_text_color;
+                colTextSecondary.value = currentConfig.secondary_text_color;
+                colDivider.value = currentConfig.divider_color;
+                colGradStart.value = currentConfig.gradient_start;
+                colGradEnd.value = currentConfig.gradient_end;
+
+                // Populate widgets
+                chkQuote.checked = currentConfig.show_quote;
+                chkProgress.checked = currentConfig.show_progress_bar;
+                chkReminder.checked = currentConfig.show_reminder;
+                reminderText.value = currentConfig.reminder_text || '';
+
+                // Populate Opacity Slider
+                const opPercentage = Math.round((currentConfig.background_image_opacity || 0.15) * 100);
+                opacityRange.value = opPercentage;
+                opacityVal.textContent = opPercentage + '%';
+
+                // Display Screen Resolution
+                if (currentConfig.default_resolution && currentConfig.default_resolution.length === 2) {
+                    resBadge.textContent = `${currentConfig.default_resolution[0]} x ${currentConfig.default_resolution[1]}`;
+                }
+
+                // Fetch Available Fonts
+                const resFonts = await fetch('/api/fonts');
+                const fonts = await resFonts.json();
+                
+                // Clear existing font options (except default)
+                fontSelect.innerHTML = '<option value="Inter">Inter (Default)</option>';
+                
+                // Populate scanned system fonts
+                fonts.forEach(fontName => {
+                    if (fontName !== 'Inter') {
+                        const opt = document.createElement('option');
+                        opt.value = fontName;
+                        opt.textContent = fontName;
+                        if (fontName === currentConfig.font_family) {
+                            opt.selected = true;
+                        }
+                        fontSelect.appendChild(opt);
+                    }
+                });
+            } catch (err) {
+                console.error("Failed to load initial configuration data", err);
+                showToast("Could not load configurations from server", false);
+            }
+        }
+
+        // Save settings to Local API
+        async function saveSettings() {
+            const body = {
+                accent_color: colAccent.value,
+                background_color: colBg.value,
+                card_background_color: colCardBg.value,
+                card_border_color: colCardBorder.value,
+                primary_text_color: colTextPrimary.value,
+                secondary_text_color: colTextSecondary.value,
+                divider_color: colDivider.value,
+                gradient_start: colGradStart.value,
+                gradient_end: colGradEnd.value,
+                show_quote: chkQuote.checked,
+                show_progress_bar: chkProgress.checked,
+                show_reminder: chkReminder.checked,
+                reminder_text: reminderText.value,
+                background_image_opacity: parseFloat((opacityRange.value / 100).toFixed(2)),
+                font_family: fontSelect.value
+            };
+
+            showToast("Generating wallpaper & updating desktop...", true);
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    showToast("Wallpaper successfully updated!", true);
+                } else {
+                    showToast(`Error: ${result.error || 'Failed to save settings'}`, false);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Connection error: Failed to update wallpaper", false);
+            }
+        }
+
+        // Close Dashboard and quit server
+        async function closeDashboard() {
+            try {
+                showToast("Closing settings dashboard...", true);
+                await fetch('/api/close', { method: 'POST' });
+                // Delay window closing or redirecting slightly
+                setTimeout(() => {
+                    window.close();
+                    document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#7e8494;font-family:sans-serif;font-size:1.2rem;">Settings server closed. You can close this tab.</div>';
+                }, 1000);
+            } catch (err) {
+                // If it fails to fetch because server immediately closed, that's fine
+                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#7e8494;font-family:sans-serif;font-size:1.2rem;">Settings server closed. You can close this tab.</div>';
+            }
+        }
+
+        // Load data on page load
+        window.addEventListener('DOMContentLoaded', loadInitData);
+    </script>
+</body>
+</html>
