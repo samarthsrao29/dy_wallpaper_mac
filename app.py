@@ -70,7 +70,7 @@ class YearFlowApp:
 
         quote = self.quote_manager.get_quote_for_date(snapshot.current_date)
         wallpaper_path = self.generator.generate(snapshot, quote, output_path=output_path)
-        self.wallpaper_manager.set_wallpaper(wallpaper_path)
+        self.wallpaper_manager.set_wallpaper(wallpaper_path, force=force)
         LOGGER.info("YearFlow refresh completed")
         return wallpaper_path
 

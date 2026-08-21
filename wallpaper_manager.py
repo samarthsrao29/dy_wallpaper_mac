@@ -13,26 +13,27 @@ LOGGER = logging.getLogger(__name__)
 class WallpaperManager:
     """Sets the generated wallpaper as the current macOS desktop picture."""
 
-    def set_wallpaper(self, image_path: Path) -> None:
+    def set_wallpaper(self, image_path: Path, force: bool = False) -> None:
         """Set the desktop wallpaper for all spaces using AppleScript."""
         resolved_path = image_path.expanduser().resolve()
         if not resolved_path.exists():
             raise FileNotFoundError(f"Wallpaper image does not exist: {resolved_path}")
 
         # Check if the wallpaper is already set to the target path to avoid redundant updates
-        try:
-            check_result = subprocess.run(
-                ["osascript", "-e", 'tell application "System Events" to get picture of every desktop'],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            current_paths = [p.strip() for p in check_result.stdout.strip().split(",") if p.strip()]
-            if current_paths and all(p == str(resolved_path) for p in current_paths):
-                LOGGER.info("Wallpaper is already set correctly to: %s. Skipping update.", resolved_path)
-                return
-        except Exception as error:
-            LOGGER.warning("Could not check current wallpaper: %s. Proceeding to set it.", error)
+        if not force:
+            try:
+                check_result = subprocess.run(
+                    ["osascript", "-e", 'tell application "System Events" to get picture of every desktop'],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                current_paths = [p.strip() for p in check_result.stdout.strip().split(",") if p.strip()]
+                if current_paths and all(p == str(resolved_path) for p in current_paths):
+                    LOGGER.info("Wallpaper is already set correctly to: %s. Skipping update.", resolved_path)
+                    return
+            except Exception as error:
+                LOGGER.warning("Could not check current wallpaper: %s. Proceeding to set it.", error)
 
         # Try setting via System Events first (supports multiple displays)
         system_events_script = (
