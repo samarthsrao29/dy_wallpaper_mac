@@ -146,13 +146,15 @@ class WallpaperGenerator:
         right_width = int(width * 0.325)
         right_x = width - margin_x - right_width
 
+        scale_l = getattr(self.config, "layout_scale", 1.0)
+
         # ----------------------------------------------------
         # LEFT COLUMN
         # ----------------------------------------------------
         # 1. Year Header (Calendar Icon + "YYYY")
         year_header_y = top_y
-        badge_sz = int(height * 0.055)
-        icon_sz = int(height * 0.038)
+        badge_sz = int(height * 0.055 * scale_l)
+        icon_sz = int(height * 0.038 * scale_l)
         
         self._draw_card(draw, left_x, year_header_y, badge_sz, badge_sz, radius=int(badge_sz * 0.25))
         icon_offset = (badge_sz - icon_sz) // 2
@@ -171,7 +173,7 @@ class WallpaperGenerator:
         )
 
         # 2. Countdown Title
-        countdown_y = year_header_y + int(height * 0.11)
+        countdown_y = year_header_y + int(height * 0.11 * scale_l)
         subtitle_font = self._font(int(height * 0.018), weight="Medium")
         draw.text(
             (left_x, countdown_y),
@@ -181,7 +183,7 @@ class WallpaperGenerator:
         )
 
         # 3. Big countdown number (solid red)
-        big_num_y = countdown_y + int(height * 0.02)
+        big_num_y = countdown_y + int(height * 0.02 * scale_l)
         big_num_font = self._font(int(height * 0.165), weight="Bold")
         days_rem_str = str(snapshot.days_remaining_year)
         draw.text(
@@ -192,7 +194,7 @@ class WallpaperGenerator:
         )
 
         # 4. DAYS LEFT label
-        days_left_y = big_num_y + int(height * 0.20)
+        days_left_y = big_num_y + int(height * 0.20 * scale_l)
         days_left_font = self._font(int(height * 0.022), weight="Bold")
         draw.text(
             (left_x, days_left_y),
@@ -202,16 +204,16 @@ class WallpaperGenerator:
         )
 
         # 5. Progress Bar
-        progress_y = days_left_y + int(height * 0.05)
+        progress_y = days_left_y + int(height * 0.05 * scale_l)
         bar_w = int(width * 0.44)
-        bar_h = int(height * 0.020)
+        bar_h = int(height * 0.020 * scale_l)
         progress_val = snapshot.days_completed / snapshot.days_in_year
         self._draw_progress_bar(draw, left_x, progress_y, bar_w, bar_h, progress_val)
 
         # 6. Stats section
-        stats_y = progress_y + int(height * 0.05)
-        circle_sz = int(height * 0.055)
-        stat_icon_sz = int(height * 0.028)
+        stats_y = progress_y + int(height * 0.05 * scale_l)
+        circle_sz = int(height * 0.055 * scale_l)
+        stat_icon_sz = int(height * 0.028 * scale_l)
         stat_title_font = self._font(int(height * 0.020), weight="Bold")
         stat_sub_font = self._font(int(height * 0.017), weight="Medium")
 
@@ -274,13 +276,13 @@ class WallpaperGenerator:
 
         # 7. Quote Panel
         if self.config.show_quote:
-            quote_panel_y = stats_y + int(height * 0.09)
+            quote_panel_y = stats_y + int(height * 0.09 * scale_l)
             panel_w = int(width * 0.44)
-            panel_h = int(height * 0.11)
+            panel_h = int(height * 0.11 * scale_l)
             
-            self._draw_card(draw, left_x, quote_panel_y, panel_w, panel_h, radius=int(height * 0.015))
+            self._draw_card(draw, left_x, quote_panel_y, panel_w, panel_h, radius=int(height * 0.015 * scale_l))
             
-            q_badge_sz = int(height * 0.055)
+            q_badge_sz = int(height * 0.055 * scale_l)
             q_badge_x = left_x + int(width * 0.015)
             q_badge_y = quote_panel_y + (panel_h - q_badge_sz) // 2
             self._draw_quote_badge(draw, q_badge_x, q_badge_y, q_badge_sz)
@@ -304,15 +306,15 @@ class WallpaperGenerator:
         # 8. Reminder Panel
         if self.config.show_reminder:
             panel_w = int(width * 0.44)
-            panel_h = int(height * 0.11)
+            panel_h = int(height * 0.11 * scale_l)
             if self.config.show_quote:
-                reminder_panel_y = stats_y + int(height * 0.09) + panel_h + int(height * 0.02)
+                reminder_panel_y = stats_y + int(height * 0.09 * scale_l) + panel_h + int(height * 0.02 * scale_l)
             else:
-                reminder_panel_y = stats_y + int(height * 0.09)
+                reminder_panel_y = stats_y + int(height * 0.09 * scale_l)
             
-            self._draw_card(draw, left_x, reminder_panel_y, panel_w, panel_h, radius=int(height * 0.015))
+            self._draw_card(draw, left_x, reminder_panel_y, panel_w, panel_h, radius=int(height * 0.015 * scale_l))
             
-            r_badge_sz = int(height * 0.055)
+            r_badge_sz = int(height * 0.055 * scale_l)
             r_badge_x = left_x + int(width * 0.015)
             r_badge_y = reminder_panel_y + (panel_h - r_badge_sz) // 2
             self._draw_reminder_badge(draw, r_badge_x, r_badge_y, r_badge_sz)
@@ -341,11 +343,11 @@ class WallpaperGenerator:
 
         # Card 1: Today
         card1_y = top_y
-        card1_h = int(height * 0.30)
-        self._draw_card(draw, card_x, card1_y, card_w, card1_h, radius=int(height * 0.015))
+        card1_h = int(height * 0.30 * scale_l)
+        self._draw_card(draw, card_x, card1_y, card_w, card1_h, radius=int(height * 0.015 * scale_l))
         
         today_badge_x = card_x + int(width * 0.02)
-        today_badge_y = card1_y + int(height * 0.03)
+        today_badge_y = card1_y + int(height * 0.03 * scale_l)
         self._draw_card(draw, today_badge_x, today_badge_y, badge_sz, badge_sz, radius=int(badge_sz * 0.25))
         self._draw_icon(draw, "calendar", today_badge_x + icon_offset, today_badge_y + icon_offset, icon_sz, self.config.accent_color)
         
@@ -363,7 +365,7 @@ class WallpaperGenerator:
         day_font = self._font(int(height * 0.052), weight="Bold")
         day_text = snapshot.day_name
         draw.text(
-            (card_x + int(width * 0.02), today_badge_y + badge_sz + int(height * 0.02)),
+            (card_x + int(width * 0.02), today_badge_y + badge_sz + int(height * 0.02 * scale_l)),
             day_text,
             fill=self.config.primary_text_color,
             font=day_font,
@@ -372,13 +374,13 @@ class WallpaperGenerator:
         date_font = self._font(int(height * 0.022), weight="Medium")
         date_text = f"{snapshot.month_name} {snapshot.current_date.day}, {snapshot.year}"
         draw.text(
-            (card_x + int(width * 0.02), today_badge_y + badge_sz + int(height * 0.085)),
+            (card_x + int(width * 0.02), today_badge_y + badge_sz + int(height * 0.085 * scale_l)),
             date_text,
             fill=self.config.secondary_text_color,
             font=date_font,
         )
 
-        divider_y_today = card1_y + card1_h - int(height * 0.04)
+        divider_y_today = card1_y + card1_h - int(height * 0.04 * scale_l)
         draw.line(
             (card_x + int(width * 0.02), divider_y_today, card_x + card_w - int(width * 0.02), divider_y_today),
             fill=self.config.divider_color,
@@ -386,12 +388,12 @@ class WallpaperGenerator:
         )
 
         # Card 2: This Month
-        card2_y = card1_y + card1_h + int(height * 0.03)
-        card2_h = int(height * 0.24)
-        self._draw_card(draw, card_x, card2_y, card_w, card2_h, radius=int(height * 0.015))
+        card2_y = card1_y + card1_h + int(height * 0.03 * scale_l)
+        card2_h = int(height * 0.24 * scale_l)
+        self._draw_card(draw, card_x, card2_y, card_w, card2_h, radius=int(height * 0.015 * scale_l))
 
         month_badge_x = card_x + int(width * 0.02)
-        month_badge_y = card2_y + int(height * 0.03)
+        month_badge_y = card2_y + int(height * 0.03 * scale_l)
         self._draw_card(draw, month_badge_x, month_badge_y, badge_sz, badge_sz, radius=int(badge_sz * 0.25))
         self._draw_icon(draw, "clock", month_badge_x + icon_offset, month_badge_y + icon_offset, icon_sz, self.config.accent_color)
         
@@ -404,13 +406,13 @@ class WallpaperGenerator:
 
         days_rem_month_str = str(snapshot.days_remaining_month)
         draw.text(
-            (card_x + int(width * 0.02), month_badge_y + badge_sz + int(height * 0.015)),
+            (card_x + int(width * 0.02), month_badge_y + badge_sz + int(height * 0.015 * scale_l)),
             days_rem_month_str,
             fill=self.config.primary_text_color,
             font=day_font,
         )
         draw.text(
-            (card_x + int(width * 0.02), month_badge_y + badge_sz + int(height * 0.075)),
+            (card_x + int(width * 0.02), month_badge_y + badge_sz + int(height * 0.075 * scale_l)),
             "Days Left",
             fill=self.config.secondary_text_color,
             font=date_font,
@@ -420,10 +422,10 @@ class WallpaperGenerator:
         _, days_in_month = calendar.monthrange(snapshot.year, snapshot.current_date.month)
         month_ratio = snapshot.days_remaining_month / days_in_month
         
-        ring_sz = int(height * 0.105)
+        ring_sz = int(height * 0.105 * scale_l)
         ring_x = card_x + card_w - ring_sz - int(width * 0.025)
-        ring_y = month_badge_y + badge_sz - int(height * 0.01)
-        ring_thick = int(height * 0.018)
+        ring_y = month_badge_y + badge_sz - int(height * 0.01 * scale_l)
+        ring_thick = int(height * 0.018 * scale_l)
         self._draw_donut_chart(
             draw,
             ring_x,
@@ -760,8 +762,10 @@ class WallpaperGenerator:
         if not font_path.exists():
             self._download_font(font_path, weight)
 
+        scaled_size = int(size * getattr(self.config, "font_scale", 1.0))
+
         if font_path.exists():
-            return ImageFont.truetype(str(font_path), size)
+            return ImageFont.truetype(str(font_path), scaled_size)
 
         # Fallback to other weights if the specific one is missing
         fallback_path = self.config.font_regular_path

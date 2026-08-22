@@ -62,6 +62,8 @@ class YearFlowConfig:
     output_filename: str = "yearflow-wallpaper.png"
     gradient_start: str = "#FF453A"  # Red/orange gradient start
     gradient_end: str = "#FF9F0A"  # Red/orange gradient end
+    font_scale: float = 1.0
+    layout_scale: float = 1.0
 
     def get_output_path(self, target_date: date) -> Path:
         """Return the full path for the generated wallpaper for a specific date."""
@@ -130,6 +132,8 @@ def load_config() -> YearFlowConfig:
         "backgrounds_folder": "",
         "background_image_opacity": 0.15,
         "font_family": "Inter",
+        "font_scale": 1.0,
+        "layout_scale": 1.0,
     }
 
     if IS_FROZEN:
@@ -181,6 +185,21 @@ def load_config() -> YearFlowConfig:
         CONFIG_LOAD_WARNINGS.append("Invalid opacity format. Falling back to default opacity 0.15.")
         opacity = 0.15
 
+    # Parse scales
+    font_scale_val = loaded_settings.get("font_scale", defaults["font_scale"])
+    try:
+        font_scale = float(font_scale_val)
+    except (ValueError, TypeError):
+        CONFIG_LOAD_WARNINGS.append("Invalid font_scale format. Falling back to 1.0.")
+        font_scale = 1.0
+
+    layout_scale_val = loaded_settings.get("layout_scale", defaults["layout_scale"])
+    try:
+        layout_scale = float(layout_scale_val)
+    except (ValueError, TypeError):
+        CONFIG_LOAD_WARNINGS.append("Invalid layout_scale format. Falling back to 1.0.")
+        layout_scale = 1.0
+
     # Parse backgrounds folder
     bg_folder_str = loaded_settings.get("backgrounds_folder", "")
     if bg_folder_str:
@@ -210,7 +229,7 @@ def load_config() -> YearFlowConfig:
                 # Find regular
                 reg_found = None
                 for k, v in styles.items():
-                    if any(x in k.lower() for x in ("regular", "roman", "light", "w3", "w4", "plain")):
+                    if any(x in k.lower() for x in ("regular", "roman", "light", "w3", "w4", "plain", "normal")):
                         reg_found = Path(v)
                         break
                 if not reg_found and styles:
@@ -266,6 +285,8 @@ def load_config() -> YearFlowConfig:
         quotes_path=to_path(loaded_settings.get("quotes_path"), BASE_DIR / "quotes.json"),
         logs_folder=to_path(loaded_settings.get("logs_folder"), LOGS_FOLDER),
         output_filename=str(loaded_settings.get("output_filename", "yearflow-wallpaper.png")),
+        font_scale=font_scale,
+        layout_scale=layout_scale,
     )
 
 

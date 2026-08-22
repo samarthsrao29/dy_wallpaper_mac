@@ -420,6 +420,20 @@
                         <span class="range-value" id="opacity-val">15%</span>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="font-scale-range">Global Font Size Scale</label>
+                    <div class="range-container">
+                        <input type="range" id="font-scale-range" min="50" max="200" value="100" step="5">
+                        <span class="range-value" id="font-scale-val">100%</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="layout-scale-range">Global Block Size Scale</label>
+                    <div class="range-container">
+                        <input type="range" id="layout-scale-range" min="50" max="200" value="100" step="5">
+                        <span class="range-value" id="layout-scale-val">100%</span>
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -507,6 +521,10 @@
         const fontSelect = document.getElementById('font-select');
         const opacityRange = document.getElementById('opacity-range');
         const opacityVal = document.getElementById('opacity-val');
+        const fontScaleRange = document.getElementById('font-scale-range');
+        const fontScaleVal = document.getElementById('font-scale-val');
+        const layoutScaleRange = document.getElementById('layout-scale-range');
+        const layoutScaleVal = document.getElementById('layout-scale-val');
         const chkQuote = document.getElementById('chk-quote');
         const chkProgress = document.getElementById('chk-progress');
         const chkReminder = document.getElementById('chk-reminder');
@@ -528,9 +546,15 @@
 
         let currentConfig = {};
 
-        // Slider listener
+        // Slider listeners
         opacityRange.addEventListener('input', (e) => {
             opacityVal.textContent = e.target.value + '%';
+        });
+        fontScaleRange.addEventListener('input', (e) => {
+            fontScaleVal.textContent = e.target.value + '%';
+        });
+        layoutScaleRange.addEventListener('input', (e) => {
+            layoutScaleVal.textContent = e.target.value + '%';
         });
 
         // Show Toast Notification
@@ -573,6 +597,15 @@
                 opacityRange.value = opPercentage;
                 opacityVal.textContent = opPercentage + '%';
 
+                // Populate Scale Sliders
+                const fontScalePercent = Math.round((currentConfig.font_scale || 1.0) * 100);
+                fontScaleRange.value = fontScalePercent;
+                fontScaleVal.textContent = fontScalePercent + '%';
+
+                const layoutScalePercent = Math.round((currentConfig.layout_scale || 1.0) * 100);
+                layoutScaleRange.value = layoutScalePercent;
+                layoutScaleVal.textContent = layoutScalePercent + '%';
+
                 // Display Screen Resolution
                 if (currentConfig.default_resolution && currentConfig.default_resolution.length === 2) {
                     resBadge.textContent = `${currentConfig.default_resolution[0]} x ${currentConfig.default_resolution[1]}`;
@@ -590,7 +623,7 @@
                     if (fontName !== 'Inter') {
                         const opt = document.createElement('option');
                         opt.value = fontName;
-                        opt.textContent = fontName;
+                        opt.textContent = fontName === "Virgil 3 YOFF" ? "Virgil" : fontName;
                         if (fontName === currentConfig.font_family) {
                             opt.selected = true;
                         }
@@ -620,6 +653,8 @@
                 show_reminder: chkReminder.checked,
                 reminder_text: reminderText.value,
                 background_image_opacity: parseFloat((opacityRange.value / 100).toFixed(2)),
+                font_scale: parseFloat((fontScaleRange.value / 100).toFixed(2)),
+                layout_scale: parseFloat((layoutScaleRange.value / 100).toFixed(2)),
                 font_family: fontSelect.value
             };
 
@@ -659,6 +694,15 @@
                 document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#7e8494;font-family:sans-serif;font-size:1.2rem;">Settings server closed. You can close this tab.</div>';
             }
         }
+
+        // Periodically ping the server to keep it alive
+        setInterval(async () => {
+            try {
+                await fetch('/api/heartbeat');
+            } catch (err) {
+                // Ignore errors
+            }
+        }, 3000);
 
         // Load data on page load
         window.addEventListener('DOMContentLoaded', loadInitData);

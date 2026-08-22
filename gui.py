@@ -24,17 +24,27 @@ class SettingsHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         """Route GET requests."""
+        import time
+        if hasattr(self.server, "last_heartbeat"):
+            self.server.last_heartbeat = time.time()
+
         if self.path == "/":
             self._serve_html()
         elif self.path == "/api/config":
             self._serve_config()
         elif self.path == "/api/fonts":
             self._serve_fonts()
+        elif self.path == "/api/heartbeat":
+            self._serve_heartbeat()
         else:
             self.send_error(404, "File Not Found")
 
     def do_POST(self) -> None:
         """Route POST requests."""
+        import time
+        if hasattr(self.server, "last_heartbeat"):
+            self.server.last_heartbeat = time.time()
+
         if self.path == "/api/config":
             self._handle_save_config()
         elif self.path == "/api/close":
@@ -88,11 +98,39 @@ class SettingsHTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_error(500, "Internal Server Error")
 
     def _serve_fonts(self) -> None:
-        """Return list of scanned font family names."""
+        """Return list of curated popular font family names."""
         try:
             families = config.scan_mac_fonts()
-            sorted_family_names = sorted(list(families.keys()))
-            content = json.dumps(sorted_family_names).encode("utf-8")
+            
+            # Curate popular/aesthetic font families
+            curated_fonts = [
+                "Inter",
+                "System Font",
+                ".New York",
+                "Helvetica Neue",
+                "Avenir Next",
+                "Futura",
+                "Optima",
+                "Baskerville",
+                "Georgia",
+                "American Typewriter",
+                "Menlo",
+                "Ndot 57",
+                "Lettera Mono LL",
+                "NType 82",
+                "Space Grotesk",
+                "Mocka",
+                "Nagasaki",
+                "The Block",
+                "Virgil 3 YOFF"
+            ]
+            
+            # Filter to keep only those present on the system/bundle, falling back to all if empty
+            available_curated = [font for font in curated_fonts if font in families]
+            if not available_curated:
+                available_curated = sorted(list(families.keys()))
+                
+            content = json.dumps(available_curated).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(content)))
@@ -100,6 +138,18 @@ class SettingsHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(content)
         except Exception as error:
             LOGGER.error("Failed to list system fonts: %s", error)
+            self.send_error(500, "Internal Server Error")
+    def _serve_heartbeat(self) -> None:
+        """Return heartbeat status."""
+        try:
+            content = b'{"status":"ok"}'
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception as error:
+            LOGGER.error("Failed to serve heartbeat: %s", error)
             self.send_error(500, "Internal Server Error")
 
     def _handle_save_config(self) -> None:
@@ -170,15 +220,46 @@ class SettingsGUIServer:
 
     def start(self) -> None:
         """Start the HTTP server on a background thread."""
+        import socket
+        import time
+        # Dynamically find an available port if the default is in use (e.g. macOS AirPlay conflict on 5000)
+        base_port = self.port
+        for offset in range(20):
+            candidate_port = base_port + offset
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind((self.host, candidate_port))
+                self.port = candidate_port
+                break
+            except OSError:
+                LOGGER.debug("Port %s is busy, trying next...", candidate_port)
+
         try:
             self.server = HTTPServer((self.host, self.port), SettingsHTTPRequestHandler)
+            self.server.last_heartbeat = time.time()
             LOGGER.info("Starting settings server on http://%s:%s", self.host, self.port)
             
             self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
             self.thread.start()
             
+            # Start background heartbeat monitor thread to auto-shutdown when browser tab/window is closed
+            def monitor_heartbeat():
+                # Allow 25 seconds for the browser to open and load the settings page
+                time.sleep(25)
+                while self.server:
+                    time.sleep(2)
+                    if not hasattr(self.server, "last_heartbeat"):
+                        continue
+                    # Shutdown if no heartbeat received for more than 10 seconds
+                    if time.time() - self.server.last_heartbeat > 10:
+                        LOGGER.info("No heartbeat received for 10 seconds. Auto-shutting down...")
+                        threading.Thread(target=self.server.shutdown, daemon=True).start()
+                        break
+            
+            threading.Thread(target=monitor_heartbeat, daemon=True).start()
+
             # Automatically open user browser
-            webbrowser.open(f"http://{self.host}:{self.port}/")
+            webbrowser.open(f"http://localhost:{self.port}/")
         except Exception as error:
             LOGGER.exception("Failed to start settings server: %s", error)
 

@@ -27,6 +27,7 @@ echo "Building standalone macOS Application..."
 # --noconfirm: overwrite existing build without prompting
 # --add-data: embed the fonts folder and quotes.json
 pyinstaller --windowed --name YearFlow --noconfirm \
+    --icon "YearFlow.icns" \
     --add-data "quotes.json:." \
     --add-data "fonts:fonts" \
     --add-data "launchd:launchd" \
