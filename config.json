@@ -13,5 +13,7 @@
     "show_reminder": true,
     "reminder_text": "Reminder: Check your TO DO list and stay on track!",
     "background_image_opacity": 0.15,
-    "font_family": "Ndot 57"
+    "font_scale": 1,
+    "layout_scale": 1,
+    "font_family": "Virgil 3 YOFF"
 }
